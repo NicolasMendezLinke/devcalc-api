@@ -1,0 +1,46 @@
+version: "3.9"
+
+services:
+
+  postgres:
+    image: postgres:15
+    container_name: pgdb
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: pass
+      POSTGRES_DB: testdb
+    ports:
+      - "5432:5432"
+    volumes:
+      - shared_data:/shared
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user"]
+      interval: 5s
+      retries: 5
+      timeout: 3s
+
+  redis:
+    image: redis:7
+    container_name: redisdb
+    ports:
+      - "6379:6379"
+    volumes:
+      - shared_data:/shared
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      retries: 5
+      timeout: 3s
+
+  tester:
+    image: busybox
+    container_name: testbox
+    depends_on:
+      - postgres
+      - redis
+    command: sh -c "while true; do sleep 3600; done"
+    volumes:
+      - shared_data:/shared
+
+volumes:
+  shared_data:
