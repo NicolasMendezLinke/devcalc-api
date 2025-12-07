@@ -1,0 +1,31 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: tp2-multicontainer-pod
+  namespace: tp2
+spec:
+  containers:
+
+    - name: nginx
+      image: nginx:1.29.3-alpine-slim
+      ports:
+        - containerPort: 80
+
+    - name: busybox
+      image: busybox
+      env:
+        - name: USER
+          value: "root"
+        - name: PASSWORD
+          value: "123456"
+      command: ["/bin/sh", "-c"]
+      args:
+        - |
+          while true; do
+            echo "----------"
+            echo "Hora atual: $(date)"
+            echo "Requisitando NGINX:"
+            wget -qO- http://localhost:80 || echo "Falha ao acessar o Nginx"
+            echo "----------"
+            sleep 10;
+          done
