@@ -1,0 +1,58 @@
+name: Deploy Pipeline
+
+on:
+  push:
+    branches:
+      - main   # Só dispara em push na main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    # Variáveis de ambiente dos três ambientes
+    env:
+      DEV_URL: https://dev.example.com
+      STAGING_URL: https://staging.example.com
+      PROD_URL: https://prod.example.com
+
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v4
+
+      # Aqui configuramos qual ambiente usar
+      - name: Definir ambiente de deploy
+        id: set-env
+        run: |
+          # A lógica é simples: vamos usar uma variável de ambiente chamada DEPLOY_ENV
+          # que você vai configurar como SECRET no GitHub
+          echo "Ambiente recebido: ${{ secrets.DEPLOY_ENV }}"
+          if [ "${{ secrets.DEPLOY_ENV }}" = "dev" ]; then
+            echo "ENV_NAME=dev" >> $GITHUB_OUTPUT
+            echo "ENV_URL=${DEV_URL}" >> $GITHUB_OUTPUT
+          elif [ "${{ secrets.DEPLOY_ENV }}" = "staging" ]; then
+            echo "ENV_NAME=staging" >> $GITHUB_OUTPUT
+            echo "ENV_URL=${STAGING_URL}" >> $GITHUB_OUTPUT
+          else
+            echo "ENV_NAME=prod" >> $GITHUB_OUTPUT
+            echo "ENV_URL=${PROD_URL}" >> $GITHUB_OUTPUT
+          fi
+
+      # Exemplo de uso de secrets (credenciais)
+      - name: Exibir credenciais mascaradas
+        run: |
+          echo "Usuário: ${{ secrets.DEPLOY_USER }}"
+          echo "Senha: ${{ secrets.DEPLOY_PASSWORD }}"
+
+      # Mensagem final diferente dependendo do ambiente
+      - name: Executar deploy
+        run: |
+          echo "Iniciando deploy para ambiente: ${{ steps.set-env.outputs.ENV_NAME }}"
+          echo "URL de destino: ${{ steps.set-env.outputs.ENV_URL }}"
+
+          if [ "${{ steps.set-env.outputs.ENV_NAME }}" = "dev" ]; then
+            echo "Deploy em DEV concluído!"
+          elif [ "${{ steps.set-env.outputs.ENV_NAME }}" = "staging" ]; then
+            echo "Deploy em STAGING concluído!"
+          else
+            echo "Deploy em PRODUÇÃO concluído!"
+          fi
