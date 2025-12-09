@@ -1,0 +1,12 @@
+name: Hello Workflow
+
+on: 
+  push:
+
+jobs:
+  say-hello:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Show hello message
+        run: echo "Hello CI/CD"
